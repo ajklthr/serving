@@ -1,3 +1,19 @@
+# Local Development with Minikube
+
+export KO_DOCKER_REPO=ko.local
+eval $(minikube -p minikube docker-env)
+
+ko build ./cmd/autoscaler
+ko apply -f config/core/deployments/autoscaler.yaml
+
+kubectl apply -f ./sample/autoscale-go/service.yaml
+
+kubectl describe PodAutoscaler autoscale-go-00001
+
+curl -v -H "Host:autoscale-go.default.127.0.0.1.sslip.io" "http://127.0.0.1:80?sleep=100&prime=10000&bloat=5"
+
+hey -z 30s -c 50 -host "autoscale-go.default.127.0.0.1.sslip.io" "http://127.0.0.1:80?sleep=100&prime=10000&bloat=5"
+
 # Development
 
 This doc explains how to set up a development environment so you can get started
