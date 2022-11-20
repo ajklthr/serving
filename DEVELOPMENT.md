@@ -14,6 +14,12 @@ curl -v -H "Host:autoscale-go.default.127.0.0.1.sslip.io" "http://127.0.0.1:80?s
 
 hey -z 30s -c 50 -host "autoscale-go.default.127.0.0.1.sslip.io" "http://127.0.0.1:80?sleep=100&prime=10000&bloat=5"
 
+hey -z 100s -q 20 -c 50 -host "autoscale-go.default.127.0.0.1.sslip.io" "http://127.0.0.1:80?sleep=100&prime=10000&bloat=5"
+
+hey -z 30s -q 1 -c 50 -host "autoscale-go.default.127.0.0.1.sslip.io" "http://127.0.0.1:80?sleep=100&prime=10000&bloat=5"
+
+hey -z 30s -q 2 -c 50 -host "autoscale-go.default.127.0.0.1.sslip.io" "http://127.0.0.1:80?sleep=100&prime=10000&bloat=5"
+
 # Development
 
 This doc explains how to set up a development environment so you can get started
