@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gonum.org/v1/gonum/stat/distuv"
 	"math"
 	"sync"
 	"time"
@@ -183,7 +184,16 @@ func (a *autoscaler) Scale(logger *zap.SugaredLogger, now time.Time) ScaleResult
 	if spec.Reachable {
 		maxScaleDown = math.Floor(readyPodsCount / spec.MaxScaleDownRate)
 	}
-
+	var t float64 = 1 // 1 sec
+	var rps float64 = observedStableValue
+	var lambda = t * rps
+	var p = distuv.Poisson{Lambda: lambda}
+	var inv = p.CDF(lambda)
+	for inv < 0.99 {
+		lambda++
+		inv = p.CDF(lambda)
+	}
+	observedStableValue = lambda
 	dspc := math.Ceil(observedStableValue / spec.TargetValue)
 	dppc := math.Ceil(observedPanicValue / spec.TargetValue)
 	if debugEnabled {
