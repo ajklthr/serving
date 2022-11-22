@@ -1,5 +1,8 @@
 # Local Development with Minikube
 
+export KO_DOCKER_REPO='docker.io/arunjoykalathoor'
+
+
 export KO_DOCKER_REPO=ko.local
 eval $(minikube -p minikube docker-env)
 
@@ -19,6 +22,26 @@ hey -z 100s -q 20 -c 50 -host "autoscale-go.default.127.0.0.1.sslip.io" "http://
 hey -z 30s -q 1 -c 50 -host "autoscale-go.default.127.0.0.1.sslip.io" "http://127.0.0.1:80?sleep=100&prime=10000&bloat=5"
 
 hey -z 30s -q 2 -c 50 -host "autoscale-go.default.127.0.0.1.sslip.io" "http://127.0.0.1:80?sleep=100&prime=10000&bloat=5"
+
+Calculation
+
+go get -u gonum.org/v1/gonum/...
+
+
+# Container Freezer
+
+# Run following if using Docker
+
+kubectl label nodes minikube knative.dev/container-runtime=containerd
+
+
+RUNTIME=containerd
+RELEASE=v0.1.0
+kubectl apply -f "https://github.com/knative-sandbox/container-freezer/releases/download/${RELEASE}/freezer-common.yaml"
+kubectl apply -f "https://github.com/knative-sandbox/container-freezer/releases/download/${RELEASE}/freezer-${RUNTIME}.yaml"
+
+kubectl patch configmap/config-deployment -n knative-serving --type merge -p '{"data":{"concurrencyStateEndpoint":"http://$HOST_IP:9696"}}'
+
 
 # Development
 
