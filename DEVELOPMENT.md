@@ -1,3 +1,54 @@
+minikube start --container-runtime=containerd
+export KO_DOCKER_REPO='docker.io/arunjoykalathoor'
+
+DataSource: http://host.docker.internal:9090
+
+curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.8.0 sh -
+
+export PATH="$PATH:/home/arunjoy/lib/istio-1.8.0/bin"
+
+minikube ssh
+
+top
+
+
+helm install grafana grafana/grafana
+
+https://knative.dev/docs/install/yaml-install/serving/install-serving-with-yaml/#install-a-networking-layer
+
+curl -H 'Host: autoscale-go.default.34.197.46.95.sslip.io' http://a53ae4f7b23e24836a8de506bc6540a8-316209420.us-east-1.elb.amazonaws.com?sleep=100&prime=10000&bloat=5
+# Replace knative.example.com with your domain suffix
+kubectl patch configmap/config-domain \
+--namespace knative-serving \
+--type merge \
+--patch '{"data":{"default.svc.cluster.local":""}}'
+
+kubectl describe configmap/config-domain --namespace knative-serving
+
+
+Grafana
+
+
+1. Get your 'admin' user password by running:
+
+   kubectl get secret --namespace default grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+
+2. The Grafana server can be accessed via port 80 on the following DNS name from within your cluster:
+
+   grafana.default.svc.cluster.local
+
+   Get the Grafana URL to visit by running these commands in the same shell:
+   export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=grafana" -o jsonpath="{.items[0].metadata.name}")
+   kubectl --namespace default port-forward $POD_NAME 3000
+
+3. Login with the password from step 1 and the username: admin
+   #################################################################################
+######   WARNING: Persistence is disabled!!! You will lose your data when   #####
+######            the Grafana pod is terminated.                            #####
+#################################################################################
+
+
+
 # Development
 
 This doc explains how to set up a development environment so you can get started

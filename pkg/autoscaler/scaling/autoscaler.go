@@ -20,21 +20,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"math"
 	"sync"
 	"time"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 	pkgmetrics "knative.dev/pkg/metrics"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	"knative.dev/serving/pkg/autoscaler/aggregation/max"
 	"knative.dev/serving/pkg/autoscaler/metrics"
 	"knative.dev/serving/pkg/resources"
-
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 type podCounter interface {
@@ -184,6 +182,16 @@ func (a *autoscaler) Scale(logger *zap.SugaredLogger, now time.Time) ScaleResult
 		maxScaleDown = math.Floor(readyPodsCount / spec.MaxScaleDownRate)
 	}
 
+	/*var minRate float64 = 2.5 //rps
+	var t float64 = 1         // 1 sec
+	var rps float64 = math.Max(observedStableValue, minRate)
+	var lambda = t * rps
+	var p = distuv.Poisson{Lambda: lambda}
+	var inv = p.CDF(lambda)
+	for inv < 0.99 {
+		lambda++
+		inv = p.CDF(lambda)
+	}*/
 	dspc := math.Ceil(observedStableValue / spec.TargetValue)
 	dppc := math.Ceil(observedPanicValue / spec.TargetValue)
 	if debugEnabled {
