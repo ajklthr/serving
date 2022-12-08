@@ -189,23 +189,25 @@ func (a *autoscaler) Scale(logger *zap.SugaredLogger, now time.Time) ScaleResult
 	if len(metrics.Items) == 0 {
 		logger.Errorw(fmt.Errorf("no metrics returned from resource metrics API").Error())
 	}
+	podSum := int64(0)
 	for _, m := range metrics.Items {
 		match, _ := regexp.MatchString("autoscale-go-00001-deployment-.*", m.Name)
 		if match {
-			podSum := int64(0)
+			logger.Info(fmt.Sprintf("Matched Pod Name %s", m.Name))
 			missing := len(m.Containers) == 0
 			for _, c := range m.Containers {
 				resValue, found := c.Usage["memory"]
+				logger.Info(fmt.Sprintf("Container Name %s - Mem %d", c.Name, resValue))
 				if !found {
 					missing = true
 					break
 				}
-				podSum += resValue.MilliValue()
+				podSum += resValue.Value()
 			}
 			logger.Errorw("Error retrieving podautoscalar '%v'", missing)
-			logger.Info(fmt.Sprintf("Pod Sum %0.0d ", podSum))
 		}
 	}
+	logger.Info(fmt.Sprintf("Pod Sum %0.0d ", podSum))
 
 	//________________
 
@@ -221,7 +223,7 @@ func (a *autoscaler) Scale(logger *zap.SugaredLogger, now time.Time) ScaleResult
 		maxScaleDown = math.Floor(readyPodsCount / spec.MaxScaleDownRate)
 	}
 
-	var minRate float64 = 5 //rps
+	var minRate float64 = 1 //rps
 	var t float64 = 1       // 1 sec
 	var rps float64 = minRate
 	var lambda = t * rps
