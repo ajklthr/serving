@@ -24,6 +24,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
 	golang.org/x/time v0.0.0-20220224211638-0e9765cccd65
+	gonum.org/v1/gonum v0.0.0-20181121035319-3f7ecaa7e8ca
 	google.golang.org/api v0.70.0
 	google.golang.org/grpc v1.47.0
 	k8s.io/api v0.25.4
@@ -32,6 +33,7 @@ require (
 	k8s.io/client-go v0.25.4
 	k8s.io/code-generator v0.25.4
 	k8s.io/kube-openapi v0.0.0-20220803162953-67bda5d908f1
+	k8s.io/metrics v0.25.4
 	k8s.io/utils v0.0.0-20221108210102-8e77b1f39fe2
 	knative.dev/caching v0.0.0-20221115130638-9712d6eadfde
 	knative.dev/control-protocol v0.0.0-20221115184737-0c32c8421056
@@ -39,6 +41,7 @@ require (
 	knative.dev/networking v0.0.0-20221115023037-6d96d6934458
 	knative.dev/pkg v0.0.0-20221115192737-dca788a951f3
 	sigs.k8s.io/yaml v1.3.0
+	k8s.io/metrics v0.25.4
 )
 
 require (
@@ -136,6 +139,7 @@ require (
 	github.com/vbatts/tar-split v0.11.2 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd // indirect
+	golang.org/x/exp v0.0.0-20200331195152-e8c3332aa8e5 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect

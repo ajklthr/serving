@@ -1,3 +1,17 @@
+# Prometheus
+
+Install Eventing
+
+Follow - https://knative.dev/docs/serving/observability/metrics/collecting-metrics/#setting-up-prometheus
+https://github.com/knative/eventing/blob/main/DEVELOPMENT.md
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install prometheus prometheus-community/kube-prometheus-stack -n default -f values.yaml
+# values.yaml contains at minimum the configuration below
+
+
+
 # Grafana 
 
 

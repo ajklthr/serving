@@ -23,12 +23,16 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gonum.org/v1/gonum/stat/distuv"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
 	"math"
+	"regexp"
 	"sync"
 	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+	resourceclient "k8s.io/metrics/pkg/client/clientset/versioned/typed/metrics/v1beta1"
 	pkgmetrics "knative.dev/pkg/metrics"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	"knative.dev/serving/pkg/autoscaler/aggregation/max"
@@ -170,6 +174,40 @@ func (a *autoscaler) Scale(logger *zap.SugaredLogger, now time.Time) ScaleResult
 		}
 		return invalidSR
 	}
+
+	// Test Metrics Client
+	var namespace1 = "default"
+	var config = rest.Config{Host: "https://192.168.49.2:8443", APIPath: "/apis",
+		BearerToken:     "eyJhbGciOiJSUzI1NiIsImtpZCI6Ii1QRmx4T2ZvYWllSHB2UFZlZmJWVW5YVlRsbUZleHVsa1BCUGVtemNxMU0ifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1ldHJpY3NhZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJtZXRyaWNzLWFkbWluIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiMDRhOGFlMjItMjk3OS00NGRhLTk2MjQtMTI2M2I2OGU5ODM2Iiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OmRlZmF1bHQ6bWV0cmljcy1hZG1pbiJ9.bk0IZJcZkmJep4JTYYL2BEemjHc6lhj9iT0dBUCk4rjQ9hlAr3cG-eOh_MdzUVDNC_a5eg5pinb4aUGzSKawxXN84OBcO46YNsjDnu9rqYhIE3FG6oAzZPkHbXPixyd0MjMdzHxHosdEYROzmUJiTDYNpHY4u2Z6tKRePUBzoWZM-fDPCazxl5YsKV3xE4ttmx6GWlx6Wo6Oyjusf9OTg_u-d56dZVDuZ5s1_ZfEF6mlBAZjT3V02zSVO1SJvhWV_YRLbBfWRS1NwgLZ8UWDdwUxu10dghKZd6wdj4X8bg7sF_7jvHbFvQj83CrR3k5IjIiDjOS3nklB2HN4-JpWyA",
+		TLSClientConfig: rest.TLSClientConfig{Insecure: true}}
+	var metricsClient = resourceclient.NewForConfigOrDie(&config)
+	metrics, err := metricsClient.PodMetricses(namespace1).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		logger.Errorw(fmt.Errorf("unable to fetch metrics from resource metrics API: %v", err).Error())
+	}
+
+	if len(metrics.Items) == 0 {
+		logger.Errorw(fmt.Errorf("no metrics returned from resource metrics API").Error())
+	}
+	for _, m := range metrics.Items {
+		match, _ := regexp.MatchString("autoscale-go-00001-deployment-.*", m.Name)
+		if match {
+			podSum := int64(0)
+			missing := len(m.Containers) == 0
+			for _, c := range m.Containers {
+				resValue, found := c.Usage["memory"]
+				if !found {
+					missing = true
+					break
+				}
+				podSum += resValue.MilliValue()
+			}
+			logger.Errorw("Error retrieving podautoscalar '%v'", missing)
+			logger.Info(fmt.Sprintf("Pod Sum %0.0d ", podSum))
+		}
+	}
+
+	//________________
 
 	// Make sure we don't get stuck with the same number of pods, if the scale up rate
 	// is too conservative and MaxScaleUp*RPC==RPC, so this permits us to grow at least by a single
