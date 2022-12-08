@@ -38,7 +38,7 @@ kubectl patch configmap/config-domain \
 minikube tunnel
 
 kubectl apply -f ./sample/autoscale-go/service.yaml
-
+  
 
 curl -v -H "Host::autoscale-go.default.127.0.0.1.nip.io" "http://127.0.0.1:80?sleep=100&prime=10000&bloat=5"
 
