@@ -14,6 +14,14 @@ helm install prometheus prometheus-community/kube-prometheus-stack -n default -f
 
 # Grafana 
 
+helm repo add grafana https://grafana.github.io/helm-charts
+
+helm install grafana grafana/grafana
+
+Note: When configuring prometheus as data source use its cluster IP
+
+Run- kubectl apply -f https://raw.githubusercontent.com/knative-sandbox/monitoring/main/grafana/dashboards.yaml
+
 
 1. Get your 'admin' user password by running:
 
