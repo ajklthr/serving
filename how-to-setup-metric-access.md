@@ -1,46 +1,14 @@
 https://kubernetes.io/docs/tasks/access-application-cluster/access-cluster/
 
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+kubectl get deployment metrics-server -n kube-system
 
 kubectl create serviceaccount metrics-admin
 
 kubectl create clusterrolebinding metric-admin-role-bind --clusterrole=cluster-admin --serviceaccount=default:metrics-admin
 
+kubectl create -f metricadmin.yaml
 
-$cat << EOF | kubectl create -f -
-
-apiVersion: v1
-kind: Secret
-metadata:
-name: metricsadmin
-annotations:
-kubernetes.io/service-account.name: default:metrics-admin
-type: kubernetes.io/service-account-token
-
-
-EOF
-
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: Secret
-metadata:
-name: default-token
-annotations:
-kubernetes.io/service-account.name: default:metrics-admin
-type: kubernetes.io/service-account-token
-EOF
-
-kubectl apply -f - <<EOF
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-name: test-admin
-rules:
-- apiGroups: [""]
-  resources: ["pods", "nodes"]
-  verbs: ["get", "watch", "list"]
-EOF
-
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
 Note issue on minikube - https://github.com/kubernetes-sigs/metrics-server/issues/917
 

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: metricsadmin
+    annotations:
+        kubernetes.io/service-account.name: metrics-admin
+type: kubernetes.io/service-account-token

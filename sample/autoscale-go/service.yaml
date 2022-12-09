@@ -20,11 +20,10 @@ spec:
   template:
     metadata:
       annotations:
-        # Target 10 in-flight-requests per pod.
         autoscaling.knative.dev/metric: rps
-        autoscaling.knative.dev/target: "3.5"
+        autoscaling.knative.dev/target: "4.2"
+        autoscaling.knative.dev/target-utilization-percentage: "70"
         autoscaling.knative.dev/target-burst-capacity: "0"
-        autoscaling.knative.dev/min-scale: "3"
     spec:
       containers:
       - image: gcr.io/knative-samples/autoscale-go:0.1
