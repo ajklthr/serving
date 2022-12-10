@@ -25,6 +25,7 @@ import (
 	"gonum.org/v1/gonum/stat/distuv"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
+	resourceclient "k8s.io/metrics/pkg/client/clientset/versioned/typed/metrics/v1beta1"
 	"math"
 	"regexp"
 	"sync"
@@ -32,7 +33,6 @@ import (
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
-	resourceclient "k8s.io/metrics/pkg/client/clientset/versioned/typed/metrics/v1beta1"
 	pkgmetrics "knative.dev/pkg/metrics"
 	"knative.dev/serving/pkg/apis/autoscaling"
 	"knative.dev/serving/pkg/autoscaler/aggregation/max"
@@ -177,8 +177,8 @@ func (a *autoscaler) Scale(logger *zap.SugaredLogger, now time.Time) ScaleResult
 
 	// Test Metrics Client
 	var namespace1 = "default"
-	var config = rest.Config{Host: "https://192.168.49.2:8443", APIPath: "/apis",
-		BearerToken:     "eyJhbGciOiJSUzI1NiIsImtpZCI6Ii1QRmx4T2ZvYWllSHB2UFZlZmJWVW5YVlRsbUZleHVsa1BCUGVtemNxMU0ifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1ldHJpY3NhZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJtZXRyaWNzLWFkbWluIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiMDRhOGFlMjItMjk3OS00NGRhLTk2MjQtMTI2M2I2OGU5ODM2Iiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OmRlZmF1bHQ6bWV0cmljcy1hZG1pbiJ9.bk0IZJcZkmJep4JTYYL2BEemjHc6lhj9iT0dBUCk4rjQ9hlAr3cG-eOh_MdzUVDNC_a5eg5pinb4aUGzSKawxXN84OBcO46YNsjDnu9rqYhIE3FG6oAzZPkHbXPixyd0MjMdzHxHosdEYROzmUJiTDYNpHY4u2Z6tKRePUBzoWZM-fDPCazxl5YsKV3xE4ttmx6GWlx6Wo6Oyjusf9OTg_u-d56dZVDuZ5s1_ZfEF6mlBAZjT3V02zSVO1SJvhWV_YRLbBfWRS1NwgLZ8UWDdwUxu10dghKZd6wdj4X8bg7sF_7jvHbFvQj83CrR3k5IjIiDjOS3nklB2HN4-JpWyA",
+	var config = rest.Config{Host: "https://486F2422B79349F940EED415372F977E.gr7.us-east-1.eks.amazonaws.com", APIPath: "/apis",
+		BearerToken:     "eyJhbGciOiJSUzI1NiIsImtpZCI6IllOdE1kb2I5dmtvdHY5QVZhd0tDb2huazRqLU5ORTFzWHdnSWVJbVQybVkifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im1ldHJpY3NhZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJtZXRyaWNzLWFkbWluIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiOGU3MjUxYjctNTg2My00NWRhLWJjM2ItZTUxZTk4MjI1MDMyIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OmRlZmF1bHQ6bWV0cmljcy1hZG1pbiJ9.dCTKHzyJkIph9sYkEcLdIouHyx_CVoQxWXJoXaqVNSovhsxU5tcXAlLbw5iXyqTg7ZlLmowRidCVEtS2Si9YtqsOgKu36-_ufJ-DVzKNv_dqn5nGHDTkSX7p_ItloxHHNwIlk2tc6f_ZQHjbkuqtShHKgQtSS7K5_R8lQwHzoHiYdvYVPMQdP4Hs7hhRqQKHmqD_7aAA2CwarpFUKqDh-L6qt8_5JcoCudd2TExc2FNAiQuvSIHd-6Bs2NJibMGwR3QpO9wknH4_bez5ykhPDcurIXASiXnubGMVt-wsYrHB_sJtxjBcUiWR_pHh0mZCIbWa4ETFdV2iMdKYNAv4Pg",
 		TLSClientConfig: rest.TLSClientConfig{Insecure: true}}
 	var metricsClient = resourceclient.NewForConfigOrDie(&config)
 	metrics, err := metricsClient.PodMetricses(namespace1).List(context.TODO(), metav1.ListOptions{})
@@ -191,7 +191,7 @@ func (a *autoscaler) Scale(logger *zap.SugaredLogger, now time.Time) ScaleResult
 	}
 	podSum := int64(0)
 	for _, m := range metrics.Items {
-		match, _ := regexp.MatchString("autoscale-go-00001-deployment-.*", m.Name)
+		match, _ := regexp.MatchString("exp-.*", m.Name)
 		if match {
 			logger.Info(fmt.Sprintf("Matched Pod Name %s", m.Name))
 			missing := len(m.Containers) == 0
@@ -207,7 +207,8 @@ func (a *autoscaler) Scale(logger *zap.SugaredLogger, now time.Time) ScaleResult
 			logger.Errorw("Error retrieving podautoscalar '%v'", missing)
 		}
 	}
-	logger.Info(fmt.Sprintf("Pod Sum %0.0d ", podSum))
+	podSum *= 2 // Fix issue with duplicate cadvisor metrics from kube metrics server
+	logger.Info(fmt.Sprintf("Total Warm Memory is %0.0d ", podSum))
 
 	//________________
 
@@ -223,8 +224,8 @@ func (a *autoscaler) Scale(logger *zap.SugaredLogger, now time.Time) ScaleResult
 		maxScaleDown = math.Floor(readyPodsCount / spec.MaxScaleDownRate)
 	}
 
-	var minRate float64 = 1 //rps
-	var t float64 = 1       // 1 sec
+	var minRate float64 = 2.5 //rps
+	var t float64 = 1         // 1 sec
 	var rps float64 = minRate
 	var lambda = t * rps
 	var p = distuv.Poisson{Lambda: lambda}
@@ -241,6 +242,11 @@ func (a *autoscaler) Scale(logger *zap.SugaredLogger, now time.Time) ScaleResult
 				"Desired StablePodCount = %0.0f, PanicPodCount = %0.0f, ReadyEndpointCount = %d, MaxScaleUp = %0.0f, MaxScaleDown = %0.0f",
 				metricName, observedStableValue, observedPanicValue, spec.TargetValue,
 				dspc, dppc, originalReadyPodsCount, maxScaleUp, maxScaleDown))
+	}
+	match, _ := regexp.MatchString("exp-app-1.*", a.revision)
+	if match && (podSum/1000000 > 500) {
+		logger.Info(fmt.Sprintf("Memory Pressure. Total Warm Memory is %0.0d ", podSum))
+		dspc -= 1
 	}
 
 	// We want to keep desired pod count in the  [maxScaleDown, maxScaleUp] range.
