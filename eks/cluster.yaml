@@ -1,0 +1,14 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: "ccc-test-cluster5"
+  region: "us-east-1"
+  version: "1.24"
+
+nodeGroups:
+  - name: ng-1-workers
+    instanceType: t2.xlarge
+    desiredCapacity: 2
+    amiFamily: AmazonLinux2
+    containerRuntime: containerd
